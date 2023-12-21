@@ -1,2 +1,5 @@
 git+https://github.com/boriswinner/LSH
 git+https://github.com/zafercavdar/fasttext-langdetect.git
+datasets
+nltk
+scikit-learn
