@@ -9,7 +9,7 @@ import evaluate
 
 from tqdm.auto import tqdm
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM, AutoModelForSeq2SeqLM
 
 PROMPTS = [
     "{text} => Sarcasm:",
@@ -21,19 +21,34 @@ PROMPTS = [
 
 
 @torch.no_grad()
-def get_logprobs(model, tokenizer, prompt, device, max_length):
+def get_logprobs(model, tokenizer, prompt, device, max_length=1024, label_ids=None, label_attn=None):
     inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_length).to(device)
-    input_ids, output_ids = inputs["input_ids"], inputs["input_ids"][:, 1:]
 
-    outputs = model(**inputs, labels=input_ids)
-    logits = outputs.logits
+    if model.config.is_encoder_decoder:
+        label_ids, label_attn = label_ids.to(device), label_attn.to(device)
+        logits = model(**inputs, labels=label_ids).logits
+        logprobs = torch.gather(F.log_softmax(logits, dim=2), 2, label_ids.unsqueeze(2)) * label_attn.unsqueeze(2)
+    else:
+        input_ids, output_ids = inputs["input_ids"], inputs["input_ids"][:, 1:]
+        logits = model(**inputs, labels=input_ids).logits
+        logprobs = torch.gather(F.log_softmax(logits, dim=2), 2, output_ids.unsqueeze(2))
 
-    logprobs = torch.gather(F.log_softmax(logits, dim=2), 2, output_ids.unsqueeze(2))
     return logprobs.sum()
 
 
 def predict_classification(model, tokenizer, input_text, labels, device, max_length):
-    probs = [get_logprobs(model, tokenizer, f"{input_text} {label}", device, max_length) for label in labels]
+    if model.config.is_encoder_decoder:
+        encoded_labels = tokenizer(labels, return_tensors="pt", padding=True, add_special_tokens=False)
+        list_label_ids, list_label_attn = encoded_labels["input_ids"], encoded_labels["attention_mask"]
+        probs = [
+            get_logprobs(
+                model, tokenizer, input_text, device, max_length, label_ids.view(1, -1), label_attn.view(1, -1)
+            )
+            for (label_ids, label_attn) in zip(list_label_ids, list_label_attn)
+        ]
+    else:
+        probs = [get_logprobs(model, tokenizer, f"{input_text} {label}", device, max_length) for label in labels]
+
     return probs
 
 
@@ -62,7 +77,10 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
 
-    model = AutoModelForCausalLM.from_pretrained(
+    config = AutoConfig.from_pretrained(args.base_model)
+    model_class = AutoModelForSeq2SeqLM if config.is_encoder_decoder else AutoModelForCausalLM
+
+    model = model_class.from_pretrained(
         args.base_model,
         load_in_8bit=args.load_8bit,
         torch_dtype=getattr(torch, args.dtype),
