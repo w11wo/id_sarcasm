@@ -1,2 +1,2 @@
 python scripts/run_classical_classification.py --dataset_name w11wo/reddit_indonesia_sarcastic --text_column_name text --output_folder results
-# python scripts/run_classical_classification.py --dataset_name w11wo/twitter_indonesia_sarcastic --text_column_name tweet --output_folder results
+python scripts/run_classical_classification.py --dataset_name w11wo/twitter_indonesia_sarcastic --text_column_name tweet --output_folder results
