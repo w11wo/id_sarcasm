@@ -27,7 +27,7 @@ from typing import List, Optional
 import datasets
 import evaluate
 import numpy as np
-from datasets import Value, load_dataset
+from datasets import Value, load_dataset, concatenate_datasets
 
 import transformers
 from transformers import (
@@ -186,6 +186,7 @@ class DataTrainingArguments:
         default=None, metadata={"help": "A csv or a json file containing the validation data."}
     )
     test_file: Optional[str] = field(default=None, metadata={"help": "A csv or a json file containing the test data."})
+    do_augment: bool = field(default=False, metadata={"help": "Whether to augment with iSarcasm dataset."})
 
     def __post_init__(self):
         if self.dataset_name is None:
@@ -393,6 +394,16 @@ def main():
                 cache_dir=model_args.cache_dir,
                 token=model_args.token,
             )
+
+    if data_args.do_augment:
+        isarcasm = load_dataset("w11wo/isarcasm_id", "clean")
+        # filter to only sarcastic
+        isarcasm = isarcasm.filter(lambda x: x["label"] == 1)
+
+        # normalize columns
+        raw_datasets = raw_datasets.remove_columns(set(raw_datasets["train"].features.keys()) - set(["text", "label"]))
+        # concat dataset
+        raw_datasets["train"] = concatenate_datasets([raw_datasets["train"], isarcasm["train"]])
 
     # See more about loading any type of standard or custom dataset at
     # https://huggingface.co/docs/datasets/loading_datasets.
@@ -642,7 +653,7 @@ def main():
             "accuracy": accuracy.compute(predictions=preds, references=p.label_ids)["accuracy"],
             "f1": f1.compute(predictions=preds, references=p.label_ids)["f1"],
             "precision": precision.compute(predictions=preds, references=p.label_ids)["precision"],
-            "recall": recall.compute(predictions=preds, references=p.label_ids)["recall"]
+            "recall": recall.compute(predictions=preds, references=p.label_ids)["recall"],
         }
 
     # Data collator will default to DataCollatorWithPadding when the tokenizer is passed to Trainer, so we change it if
@@ -653,7 +664,7 @@ def main():
         data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8)
     else:
         data_collator = None
-    
+
     early_stopping = EarlyStoppingCallback(early_stopping_patience=3, early_stopping_threshold=0.01)
 
     # Initialize our Trainer
