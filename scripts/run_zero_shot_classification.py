@@ -60,6 +60,7 @@ def parse_args():
     parser.add_argument("--model_max_length", type=int, default=1024)
     parser.add_argument("--load_8bit", action="store_true")
     parser.add_argument("--dtype", default="float16", type=str)
+    parser.add_argument("--text_column_name", default="text", type=str)
     parser.add_argument("--output_folder", type=str, default="outputs")
 
     return parser.parse_args()
@@ -73,6 +74,10 @@ def main():
     # load dataset, tokenizer, model
     dataset = load_dataset(args.dataset_name, split=args.dataset_split)
     dataset_label_list = ["not sarcastic", "sarcastic"]
+
+    # rename text column to `text`
+    if args.text_column_name != "text":
+        dataset = dataset.rename_column(args.text_column_name, "text")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
