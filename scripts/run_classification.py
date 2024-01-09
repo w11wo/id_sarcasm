@@ -24,10 +24,13 @@ import warnings
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+import torch
+import torch.nn as nn
 import datasets
 import evaluate
 import numpy as np
 from datasets import Value, load_dataset, concatenate_datasets
+from sklearn.utils.class_weight import compute_class_weight
 
 import transformers
 from transformers import (
@@ -187,6 +190,8 @@ class DataTrainingArguments:
     )
     test_file: Optional[str] = field(default=None, metadata={"help": "A csv or a json file containing the test data."})
     do_augment: bool = field(default=False, metadata={"help": "Whether to augment with iSarcasm dataset."})
+    do_weighted_loss: bool = field(default=False, metadata={"help": "Whether to use weighted cross-entropy loss."})
+    weight_multiplier: float = field(default=1.0, metadata={"help": "Weighted loss multiplier factor."})
 
     def __post_init__(self):
         if self.dataset_name is None:
@@ -640,7 +645,7 @@ def main():
     if training_args.do_train:
         for index in random.sample(range(len(train_dataset)), 3):
             logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
-    
+
     accuracy = evaluate.load("accuracy")
     f1 = evaluate.load("f1")
     precision = evaluate.load("precision")
@@ -667,8 +672,28 @@ def main():
 
     early_stopping = EarlyStoppingCallback(early_stopping_patience=3, early_stopping_threshold=0.01)
 
+    # get all label classes
+    classes = sorted([int(l) for l in label_list])
+    weights = (
+        compute_class_weight(class_weight="balanced", classes=classes, y=train_dataset["label"])
+        * data_args.weight_multiplier
+    )
+
+    class WeightedTrainer(Trainer):
+        def compute_loss(self, model, inputs, return_outputs=False):
+            labels = inputs.pop("labels")
+            outputs = model(**inputs)
+            logits = outputs.get("logits")
+            loss_fct = nn.CrossEntropyLoss(
+                weight=torch.tensor(weights, device=model.device, dtype=torch.float)
+                if data_args.do_weighted_loss
+                else None
+            )
+            loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+            return (loss, outputs) if return_outputs else loss
+
     # Initialize our Trainer
-    trainer = Trainer(
+    trainer = WeightedTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,

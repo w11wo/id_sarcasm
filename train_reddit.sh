@@ -13,3 +13,11 @@ sh recipes/augment/indobert_indolem_base_reddit.sh
 sh recipes/augment/mbert_base_reddit.sh
 sh recipes/augment/xlmr_base_reddit.sh
 sh recipes/augment/xlmr_large_reddit.sh
+
+# weighted loss
+sh recipes/weighted/indobert_indonlu_base_reddit.sh
+sh recipes/weighted/indobert_indonlu_large_reddit.sh
+sh recipes/weighted/indobert_indolem_base_reddit.sh
+sh recipes/weighted/mbert_base_reddit.sh
+sh recipes/weighted/xlmr_base_reddit.sh
+sh recipes/weighted/xlmr_large_reddit.sh
