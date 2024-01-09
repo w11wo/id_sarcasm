@@ -1,7 +1,7 @@
 python scripts/run_classification.py \
-    --model_name_or_path xlm-roberta-large \
-    --dataset_name w11wo/reddit_indonesia_sarcastic \
-    --dataset_config_name default \
+    --model_name_or_path indobenchmark/indobert-base-p1 \
+    --dataset_names w11wo/reddit_indonesia_sarcastic w11wo/twitter_indonesia_sarcastic w11wo/isarcasm_id \
+    --dataset_config_names default default default \
     --shuffle_train_dataset \
     --metric_name f1 \
     --text_column_name text \
@@ -14,10 +14,10 @@ python scripts/run_classification.py \
     --weight_decay 0.03 \
     --label_smoothing_factor 0.0 \
     --num_train_epochs 100 \
-    --do_train --do_eval --do_predict \
-    --output_dir outputs/xlm-roberta-large-reddit-indonesia-sarcastic-augment-weighted \
+    --do_train --do_eval \
+    --output_dir outputs/indobert-base-p1-id-sarcasm \
     --overwrite_output_dir \
-    --hub_model_id w11wo/xlm-roberta-large-reddit-indonesia-sarcastic-augment-weighted \
+    --hub_model_id w11wo/indobert-base-p1-id-sarcasm \
     --push_to_hub --hub_private_repo \
     --save_strategy epoch \
     --evaluation_strategy epoch \
@@ -27,4 +27,4 @@ python scripts/run_classification.py \
     --seed 42 \
     --report_to none \
     --fp16 \
-    --do_augment --do_weighted_loss --weight_multiplier 2.0
+    --do_weighted_loss --weight_multiplier 2.0
