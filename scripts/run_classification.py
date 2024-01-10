@@ -401,12 +401,18 @@ def main():
             )
 
     if data_args.do_augment:
-        isarcasm = load_dataset("w11wo/isarcasm_id", "clean")
+        isarcasm = load_dataset("w11wo/isarcasm_id")
         # filter to only sarcastic
         isarcasm = isarcasm.filter(lambda x: x["label"] == 1)
 
         # normalize columns
-        raw_datasets = raw_datasets.remove_columns(set(raw_datasets["train"].features.keys()) - set(["text", "label"]))
+        if data_args.text_column_names is not None:
+            text_column_name = data_args.text_column_names.split(",")[0]
+            isarcasm = isarcasm.rename_column("text", text_column_name)
+
+        raw_datasets = raw_datasets.remove_columns(
+            set(raw_datasets["train"].features.keys()) - set([text_column_name, "label"])
+        )
         # concat dataset
         raw_datasets["train"] = concatenate_datasets([raw_datasets["train"], isarcasm["train"]])
 
