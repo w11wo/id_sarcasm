@@ -1,10 +1,10 @@
 python scripts/run_classification.py \
-    --model_name_or_path bert-base-multilingual-cased \
-    --dataset_name w11wo/reddit_indonesia_sarcastic \
+    --model_name_or_path indolem/indobert-base-uncased \
+    --dataset_name w11wo/twitter_indonesia_sarcastic \
     --dataset_config_name default \
     --shuffle_train_dataset \
     --metric_name f1 \
-    --text_column_name text \
+    --text_column_name tweet \
     --label_column_name label \
     --max_seq_length 128 \
     --per_device_train_batch_size 32 \
@@ -15,9 +15,9 @@ python scripts/run_classification.py \
     --label_smoothing_factor 0.0 \
     --num_train_epochs 100 \
     --do_train --do_eval --do_predict \
-    --output_dir outputs/bert-base-multilingual-cased-reddit-indonesia-sarcastic-augment-weighted \
+    --output_dir outputs/indobert-base-uncased-twitter-indonesia-sarcastic-augment-weighted \
     --overwrite_output_dir \
-    --hub_model_id w11wo/bert-base-multilingual-cased-reddit-indonesia-sarcastic-augment-weighted \
+    --hub_model_id w11wo/indobert-base-uncased-twitter-indonesia-sarcastic-augment-weighted \
     --push_to_hub --hub_private_repo \
     --save_strategy epoch \
     --evaluation_strategy epoch \
