@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: If you use this software, please cite both the article from preferred-citation and the software itself.
+authors:
+  - family-names: Suhartono
+    given-names: Derwin
+  - family-names: Wongso
+    given-names: Wilson
+  - family-names: Tri Handoyo
+    given-names: Alif
+title: 'IdSarcasm: Benchmarking and Evaluating Language Models for Indonesian Sarcasm Detection'
+version: 1.0.0
+doi: 10.1109/ACCESS.2024.3416955
+date-released: '2024-08-07'
+preferred-citation:
+  authors:
+    - family-names: Suhartono
+      given-names: Derwin
+    - family-names: Wongso
+      given-names: Wilson
+    - family-names: Tri Handoyo
+      given-names: Alif
+  title: 'IdSarcasm: Benchmarking and Evaluating Language Models for Indonesian Sarcasm Detection'
+  doi: 10.1109/ACCESS.2024.3416955
+  type: article-journal
+  pages: 87323-87332
+  year: '2024'
+  conference: {}
+  publisher: {}
