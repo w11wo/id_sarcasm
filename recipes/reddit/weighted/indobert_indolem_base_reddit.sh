@@ -15,9 +15,9 @@ python scripts/run_classification.py \
     --label_smoothing_factor 0.0 \
     --num_train_epochs 100 \
     --do_train --do_eval --do_predict \
-    --output_dir outputs/indobert-base-uncased-reddit-indonesia-sarcastic-weighted \
+    --output_dir outputs/indobert-base-uncased-reddit-indonesia-sarcastic-augment-weighted \
     --overwrite_output_dir \
-    --hub_model_id w11wo/indobert-base-uncased-reddit-indonesia-sarcastic-weighted \
+    --hub_model_id w11wo/indobert-base-uncased-reddit-indonesia-sarcastic-augment-weighted \
     --push_to_hub --hub_private_repo \
     --save_strategy epoch \
     --evaluation_strategy epoch \
@@ -27,4 +27,4 @@ python scripts/run_classification.py \
     --seed 42 \
     --report_to none \
     --fp16 \
-    --do_weighted_loss --weight_multiplier 2.0
+    --do_augment --do_weighted_loss --weight_multiplier 2.0
